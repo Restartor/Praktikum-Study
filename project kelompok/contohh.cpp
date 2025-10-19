@@ -2,7 +2,7 @@
 #include <iomanip>
 using namespace std;
 
-const int MAXP = 20;
+const int MAXP = 20; // untuk kapasitas proses
 
 struct Proc {
     int id;
@@ -12,11 +12,11 @@ struct Proc {
     int TAT; // Turnaround Time
     int WT;  // Waiting Time
     int RT;  // Response Time
-    bool done;
-    bool started;
+    bool done; // untuk menandai proses sudah selesai atau belum
+    bool started; // untuk menandai proses sudah mulai atau belum
 };
 
-void reset(Proc p[], int n) {
+void reset(Proc p[], int n) { // Untuk mereset atribut proses sebelum simulasi
     for (int i = 0; i < n; i++) {
         p[i].CT = p[i].TAT = p[i].WT = p[i].RT = 0;
         p[i].done = false;
@@ -24,7 +24,7 @@ void reset(Proc p[], int n) {
     }
 }
 
-void printResult(const char* title, Proc p[], int n) {
+void printResult(const char* title, Proc p[], int n) {// Menampilkan hasil tabel dan rata-rata
     double avgWT = 0, avgTAT = 0, avgRT = 0;
     cout << "\n== " << title << " ==\n";
     cout << left << setw(6) << "ID"
@@ -52,8 +52,8 @@ void printResult(const char* title, Proc p[], int n) {
     cout << "Avg RT  = " << (avgRT/n)  << "\n";
 }
 
-// Gantt sederhana: print segmen [start,end):P#
-void printGantt(int starts[], int ends[], int who[], int m) {
+
+void printGantt(int starts[], int ends[], int who[], int m) {// Menampilkan diagram Gantt
     cout << "Gantt: ";
     for (int i = 0; i < m; i++) {
         cout << "|" << starts[i] << "-" << ends[i] << ":P" << who[i];
@@ -61,7 +61,7 @@ void printGantt(int starts[], int ends[], int who[], int m) {
     cout << "|\n";
 }
 
-// FCFS: urut kedatangan (AT), tie-break by ID (stabil)
+// FCFS: First-Come, First-Served (non-preemptive)
 void FCFS(Proc p[], int n) {
     // buat urutan indeks berdasar AT (bubble sederhana)
     int idx[MAXP];
@@ -75,7 +75,7 @@ void FCFS(Proc p[], int n) {
         }
     }
 
-    int time = 0;
+    int time = 0; 
     int starts[MAXP], ends[MAXP], who[MAXP], m = 0;
 
     for (int k = 0; k < n; k++) {
@@ -98,7 +98,7 @@ void FCFS(Proc p[], int n) {
     printResult("FCFS", p, n);
 }
 
-// SJF non-preemptive: setiap saat pilih yg sdh datang & BT terkecil
+// SJF: Shortest Job First (non-preemptive) yang terkecil dulu
 void SJF(Proc p[], int n) {
     reset(p, n);
     int time = 0, finished = 0;
@@ -106,7 +106,7 @@ void SJF(Proc p[], int n) {
 
     while (finished < n) {
         // cari kandidat: sudah datang & belum selesai, pilih BT terkecil (tie: AT, lalu ID)
-        int pick = -1;
+        int pick = -1; // indeks proses terpilih
         for (int i = 0; i < n; i++) {
             if (!p[i].done && p[i].AT <= time) {
                 if (pick == -1) pick = i;
@@ -174,3 +174,20 @@ int main() {
     }
     return 0;
 }
+
+// Setiap proses memiliki atribut:
+// - id: ID proses
+// - AT: Arrival Time
+// - BT: Burst Time
+// - CT: Completion Time
+// - TAT: Turnaround Time
+// - WT: Waiting Time
+// - RT: Response Time
+// - done: menandai apakah proses sudah selesai
+// - started: menandai apakah proses sudah mulai dijalankan
+// Fungsi reset: mereset atribut proses sebelum simulasi
+// Fungsi printResult: menampilkan tabel hasil dan rata-rata WT, TAT, RT
+// Fungsi printGantt: menampilkan diagram Gantt sederhana
+// Fungsi FCFS: mengimplementasikan algoritma First-Come, First-Served (non-preemptive)
+// Fungsi SJF: mengimplementasikan algoritma Shortest Job First (non-preemptive)
+// Fungsi main: input proses, memilih algoritma, menjalankan simulasi, menampilkan hasil
