@@ -21,9 +21,10 @@ def selection_sort(arr):
             if arr[j] < arr[min_idx]:
                 min_idx = j
                 arr[i], arr[min_idx] = arr[min_idx], arr[i]
+                
                 return arr
 if __name__ == "__main__":
     arr = [64, 34, 25, 12, 22, 90, 100]
     print("Original array:", arr)
-    print("Sorted array using bubble sort:", bubble_sort(arr.copy))
-    print("Sorted array using selection sort:", selection_sort(arr.copy()))
+    print("Sorted array using bubble sort:", bubble_sort(arr))
+    print("Sorted array using selection sort:", selection_sort(arr))
