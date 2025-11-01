@@ -1,8 +1,9 @@
 #include <iostream>
-#include <iomanip>
+#include <iomanip> // saya menggunakan iomanip untuk mengatur jarak spasi antara hasil dan membuat tabelnya
 using namespace std;
+// oiya jika kalian melihat idx/i itu adalah untuk menentukan 1,2,3,4 dst
 
-const int MAXP = 20; // untuk kapasitas proses
+const int MAXP = 20; // untuk maximal kapasitas proses
 
 struct Proc {
     int id;
@@ -35,7 +36,7 @@ void printResult(const char* title, Proc p[], int n) {// Menampilkan hasil tabel
          << setw(6) << "WT"
          << setw(6) << "RT" << "\n";
     for (int i = 0; i < n; i++) {
-        cout << left << setw(6) << ("P"+to_string(p[i].id))
+        cout << left << setw(6) << ("P"+to_string(p[i].id)) // to_string adalah untuk mengubah numeric value menjadi string
              << setw(6) << p[i].AT
              << setw(6) << p[i].BT
              << setw(6) << p[i].CT
@@ -46,7 +47,7 @@ void printResult(const char* title, Proc p[], int n) {// Menampilkan hasil tabel
         avgTAT += p[i].TAT;
         avgRT  += p[i].RT;
     }
-    cout << fixed << setprecision(2);
+    cout << fixed << setprecision(2); // agar persisi
     cout << "Avg WT  = " << (avgWT/n)  << "\n";
     cout << "Avg TAT = " << (avgTAT/n) << "\n";
     cout << "Avg RT  = " << (avgRT/n)  << "\n";
@@ -95,7 +96,7 @@ void FCFS(Proc p[], int n) {
     }
 
     printGantt(starts, ends, who, m);
-    printResult("FCFS", p, n);
+    printResult("FCFS (non-preemptive)", p, n);
 }
 
 // SJF: Shortest Job First (non-preemptive) yang terkecil dulu
@@ -163,7 +164,7 @@ int main() {
         p[i].started = false;
     }
 
-    cout << "\nPilih algoritma:\n1) FCFS\n2) SJF (non-preemptive)\nPilihan: ";
+    cout << "\nPilih algoritma:\n1) FCFS (non-preemptive)\n2) SJF (non-preemptive)\nPilihan: ";
     int opt; cin >> opt;
 
     if (opt == 1) {
