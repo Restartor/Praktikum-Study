@@ -1,63 +1,141 @@
 #include <iostream>
-#define MAX_SIZE 100
-
 using namespace std;
 
-int stack[MAX_SIZE];
-int top = -1;
+struct Stack {
+    int *data;
+    int top;
+    int capacity;
+};
 
-void push(int value) {
-    if (top >= MAX_SIZE - 1) {
-        cout << " Stack Overflow ";
+void initStack(Stack &s, int cap) {
+    s.capacity = cap;
+    s.data = new int[cap];
+    s.top = -1;
+}
+
+bool isEmpty(const Stack &s) {
+    return s.top == -1;
+}
+
+bool isFull(const Stack &s) {
+    return s.top == s.capacity - 1;
+}
+
+void push(Stack &s) {
+    if (isFull(s)) {
+        cout << "Stack penuh! Tidak bisa menambahkan data.\n";
         return;
     }
-    stack[++top] = value;
-}
-int pop(){
-    if (top == -1) {
-        cout << " Stack Underflow ";
-        return -1;
-    }
-    return stack[top--];
+    int value;
+    cout << "Masukkan nilai yang akan di-push: ";
+    cin >> value;
+
+    s.top++;
+    s.data[s.top] = value;
+    cout << "Data " << value << " berhasil di-push ke stack.\n";
 }
 
-int peek() {
-    if(top == -1){
-        cout << " Stack is Empty";
-        return -1;
-
-    }
-    return stack[top];
-}
-bool isEmpty(){
-    return top == -1;
-}
-
-void display() {
-    if (top == -1) {
-        cout << " Stack is Empty ";
+void pop(Stack &s) {
+    if (isEmpty(s)) {
+        cout << "Stack kosong! Tidak ada data yang bisa di-pop.\n";
         return;
     }
-    cout << " Stack elements: ";
-    for (int i = top; i >= 0; i--) {
-        cout << stack[i] << " ";
-    }
-    cout << endl;
+    int value = s.data[s.top];
+    s.top--;
+    cout << "Data " << value << " berhasil di-pop dari stack.\n";
 }
 
-int main(){
-    push(5);
-    push(10);
-    push(15);
+void peek(const Stack &s) {
+    if (isEmpty(s)) {
+        cout << "Stack kosong! Tidak ada elemen di puncak.\n";
+        return;
+    }
+    cout << "Elemen paling atas (peek): " << s.data[s.top] << endl;
+}
 
-    cout << "Top element is: " << peek() << endl;
-    display();
+void printIsEmpty(const Stack &s) {
+    if (isEmpty(s)) {
+        cout << "Stack kosong.\n";
+    } else {
+        cout << "Stack TIDAK kosong.\n";
+    }
+}
 
-    cout << "Popped element is: " << pop() << endl;
-    display();
+void printSize(const Stack &s) {
+    cout << "Jumlah elemen dalam stack: " << (s.top + 1) << endl;
+}
 
-    push(20);
-    display();
+// TOTAL semua elemen stack
+void printTotal(const Stack &s) {
+    if (isEmpty(s)) {
+        cout << "Stack kosong, total = 0.\n";
+        return;
+    }
 
+    int total = 0;
+    for (int i = 0; i <= s.top; i++) {
+        total += s.data[i];
+    }
+
+    cout << "Total semua elemen di dalam stack: " << total << endl;
+}
+
+void showMenu() {
+    cout << "\n=== PROGRAM STACK DENGAN ARRAY ===\n";
+    cout << "1. Push\n";
+    cout << "2. Pop\n";
+    cout << "3. Peek\n";
+    cout << "4. IsEmpty\n";
+    cout << "5. Size\n";
+    cout << "6. Total semua elemen stack\n";
+    cout << "7. Exit\n";
+}
+
+void runStackProgram() {
+    int cap;
+    cout << "Masukkan kapasitas maksimum stack: ";
+    cin >> cap;
+
+    Stack s;
+    initStack(s, cap);
+
+    while (true) {
+        showMenu();
+        cout << "Pilih menu [1-7]: ";
+        int choice;
+        cin >> choice;
+
+        switch (choice) {
+            case 1: 
+                push(s); 
+                break;
+            case 2: 
+                pop(s); 
+                break;
+            case 3: 
+                peek(s); 
+                break;
+            case 4: 
+                printIsEmpty(s); 
+                break;
+            case 5: 
+                printSize(s); 
+                break;
+            case 6: 
+                printTotal(s); 
+                break;
+            case 7: 
+                cout << "Keluar dari program.\n";
+                delete[] s.data;      // bebasin memory sebelum keluar
+                return;               // langsung keluar dari fungsi
+            default:
+                cout << "Pilihan tidak valid!\n";
+                break;
+        }
+    }
+}
+
+int main() {
+    runStackProgram();
     return 0;
 }
