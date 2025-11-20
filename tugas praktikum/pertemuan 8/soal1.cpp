@@ -126,8 +126,8 @@ void runStackProgram() {
                 break;
             case 7: 
                 cout << "Keluar dari program.\n";
-                delete[] s.data;      // bebasin memory sebelum keluar
-                return;               // langsung keluar dari fungsi
+                delete[] s.data;      // bersihin semua data stack
+                return;              
             default:
                 cout << "Pilihan tidak valid!\n";
                 break;
