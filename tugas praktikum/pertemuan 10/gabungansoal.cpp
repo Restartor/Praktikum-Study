@@ -153,7 +153,7 @@ void solve_priority_aging() {
     struct Gantt { int start, end, proc_index; };
 
     int n;
-    cout << "\n===== SOAL 2 — PRIORITY PREEMPTIVE + AGING =====\n";
+    cout << "\n===== SOAL 2 PRIORITY PREEMPTIVE + AGING =====\n";
     cout << "Masukkan jumlah proses: ";
     cin >> n;
 
