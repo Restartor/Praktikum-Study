@@ -1,197 +1,214 @@
 #include <iostream>
 #include <vector>
+#include <iomanip>
 using namespace std;
 
-struct Process {
-    char name[20]; // nama proses tanpa spasi
-    int at;        // Arrival Time
-    int bt;        // Burst Time
-    int remaining;
-    int queue;     // 1 = RR, 2 = FCFS
-    int ct;        // Completion Time
-    int tat;       // Turnaround Time
-    int wt;        // Waiting Time
-    int rt;        // Response Time
-};
+void solve_mlq() {
 
-struct Segment {
-    int start;
-    int end;
-    int pid;
-    int q; // queue level : 1 or 2
-};
+    struct Process {
+        string name;
+        int arrival_time;
+        int burst_time;
+        int queue_level;      // 1 = RR, 2 = FCFS
+        int remaining_time;
+        int completion_time;
+        int turnaround_time;
+        int waiting_time;
+        int response_time;
+    };
 
-int main() {
+    struct GanttSegment {
+        int start_time;
+        int end_time;
+        int proc_index;   // -1 = IDLE
+        int queue_level;  // 0 = IDLE, 1 / 2 = level
+    };
+
     int n;
-    cout << "===== Multi-Level Queue Scheduling =====\n";
+    cout << "\n===== SOAL 3 MLQ (RR + FCFS) =====\n";
     cout << "Masukkan jumlah proses: ";
     cin >> n;
 
     vector<Process> p(n);
     for (int i = 0; i < n; i++) {
-        cout << "\nProses ke-" << i + 1 << ":\n";
-        cout << "Nama proses: ";
-        cin >> p[i].name;
-        cout << "Arrival Time: ";
-        cin >> p[i].at;
-        cout << "Burst Time: ";
-        cin >> p[i].bt;
-        cout << "Queue (1=RR | 2=FCFS): ";
-        cin >> p[i].queue;
+        p[i].name = "P" + to_string(i + 1);  // <- AUTO NAME
+        cout << "\nProses ke-" << i + 1 << " :\n";
+        cout << "Arrival time       : ";
+        cin >> p[i].arrival_time;
+        cout << "Burst time         : ";
+        cin >> p[i].burst_time;
+        cout << "Queue (1=RR, 2=FCFS): ";
+        cin >> p[i].queue_level;
 
-        p[i].remaining = p[i].bt;
-        p[i].ct = p[i].tat = p[i].wt = 0;
-        p[i].rt = -1;
+        p[i].remaining_time  = p[i].burst_time;
+        p[i].completion_time = 0;
+        p[i].turnaround_time = 0;
+        p[i].waiting_time    = 0;
+        p[i].response_time   = -1;
     }
 
-    int time = 0;
-    int completed = 0;
-    int quantum = 2;
-    
-    vector<Segment> gantt;
-    
-    vector<int> q1, q2; // queue RR & queue FCFS
-    int current = -1;
-    int qtime = 0;
-    int currentQueue = -1;
-    int segStart = 0;
+    vector<int> q_rr, q_fcfs;
+    vector<GanttSegment> gantt;
 
-    // Jalankan sampai semua selesai
+    int time = p[0].arrival_time;
+    for (int i = 1; i < n; i++)
+        if (p[i].arrival_time < time)
+            time = p[i].arrival_time;
+
+    int completed     = 0;
+    int current_index = -1;
+    int current_queue = 0;
+    const int quantum = 2;
+    int quantum_left  = 0;
+    int segment_start = time;
+
     while (completed < n) {
-        // Masukkan proses ke queue sesuai AT
-        for (int i = 0; i < n; i++) {
-            if (p[i].at == time) {
-                if (p[i].queue == 1) q1.push_back(i);
-                else q2.push_back(i);
+
+        for (int i = 0; i < n; i++)
+            if (p[i].arrival_time == time)
+                (p[i].queue_level == 1) ?
+                    q_rr.push_back(i) :
+                    q_fcfs.push_back(i);
+
+        if (current_index != -1 && current_queue == 2 && !q_rr.empty()) {
+            gantt.push_back({segment_start, time, current_index, current_queue});
+            q_fcfs.insert(q_fcfs.begin(), current_index);
+            current_index = -1;
+        }
+
+        if (current_index != -1 && current_queue == 1 && quantum_left == 0) {
+            gantt.push_back({segment_start, time, current_index, current_queue});
+            if (p[current_index].remaining_time > 0)
+                q_rr.push_back(current_index);
+            else {
+                p[current_index].completion_time = time;
+                completed++;
             }
+            current_index = -1;
         }
 
-        int next = -1;
-
-        // Prioritas Queue 1
-        if (!q1.empty()) {
-            if (current == -1 || currentQueue == 2) {
-                next = q1.front();
-                q1.erase(q1.begin());
-                qtime = 0;
-                currentQueue = 1;
-            } else if (currentQueue == 1) {
-                next = current;
-            }
-        }
-        // Kalau Q1 kosong, jalankan Q2
-        else if (!q2.empty()) {
-            if (current == -1 || currentQueue == 1) {
-                next = q2.front();
-                q2.erase(q2.begin());
-                currentQueue = 2;
-            } else if (currentQueue == 2) {
-                next = current;
-            }
-        }
-
-        // Jika CPU idle
-        if (next == -1) {
-            if (current != -1) {
-                gantt.push_back({segStart, time, current, currentQueue});
-                current = -1;
-            }
-            time++;
-            segStart = time;
-            continue;
-        }
-
-        // Jika berganti proses → tutup segmen sebelumnya
-        if (next != current) {
-            if (current != -1) {
-                gantt.push_back({segStart, time, current, currentQueue});
-            }
-            segStart = time;
-            current = next;
-        }
-
-        // Response time pertama kali jalan
-        if (p[current].rt == -1) {
-            p[current].rt = time - p[current].at;
-        }
-
-        // Eksekusi 1 waktu
-        p[current].remaining--;
-        time++;
-        qtime++;
-
-        // Kalau selesai
-        if (p[current].remaining == 0) {
-            p[current].ct = time;
+        if (current_index != -1 && p[current_index].remaining_time == 0) {
+            gantt.push_back({segment_start, time, current_index, current_queue});
+            p[current_index].completion_time = time;
             completed++;
-            gantt.push_back({segStart, time, current, currentQueue});
-            current = -1;
-            qtime = 0;
+            current_index = -1;
         }
-        else if (currentQueue == 1 && qtime == quantum) {
-            // Pindah giliran RR
-            q1.push_back(current);
-            gantt.push_back({segStart, time, current, currentQueue});
-            current = -1;
-            qtime = 0;
+
+        if (current_index == -1) {
+            if (!q_rr.empty()) {
+                current_index = q_rr.front(); q_rr.erase(q_rr.begin());
+                current_queue = 1;
+                quantum_left  = quantum;
+                segment_start = time;
+                if (p[current_index].response_time == -1)
+                    p[current_index].response_time = time - p[current_index].arrival_time;
+            }
+            else if (!q_fcfs.empty()) {
+                current_index = q_fcfs.front(); q_fcfs.erase(q_fcfs.begin());
+                current_queue = 2;
+                segment_start = time;
+                if (p[current_index].response_time == -1)
+                    p[current_index].response_time = time - p[current_index].arrival_time;
+            }
+            else {
+                int next_arrival = -1;
+                for (int i = 0; i < n; i++)
+                    if (p[i].remaining_time > 0 && p[i].arrival_time > time)
+                        if (next_arrival == -1 || p[i].arrival_time < next_arrival)
+                            next_arrival = p[i].arrival_time;
+
+                if (next_arrival == -1) break;
+                gantt.push_back({time, next_arrival, -1, 0});
+                time = next_arrival;
+                segment_start = time;
+                continue;
+            }
         }
+
+        p[current_index].remaining_time--;
+        time++;
+        if (current_queue == 1) quantum_left--;
     }
 
-    // Hitung TAT dan WT
-    double totalTAT = 0, totalWT = 0;
-    double totalTAT1 = 0, totalWT1 = 0, c1 = 0;
-    double totalTAT2 = 0, totalWT2 = 0, c2 = 0;
+    double total_tat = 0, total_wt = 0;
+    for (int i = 0; i < n; i++) {
+        p[i].turnaround_time = p[i].completion_time - p[i].arrival_time;
+        p[i].waiting_time    = p[i].turnaround_time - p[i].burst_time;
+        total_tat += p[i].turnaround_time;
+        total_wt  += p[i].waiting_time;
+    }
+
+    cout << "\n===== GANTT CHART =====\n";
+    if (!gantt.empty()) {
+        cout << " ";
+        for (const auto &g : gantt) {
+            int width = (g.end_time - g.start_time) * 2;
+            for (int i = 0; i < width; ++i) cout << "-";
+            cout << " ";
+        }
+        cout << "\n|";
+        for (const auto &g : gantt) {
+            int width = (g.end_time - g.start_time) * 2 - 1;
+            string label = (g.proc_index == -1) ? "IDLE" :
+                p[g.proc_index].name + "(Q" + to_string(g.queue_level) + ")";
+
+            if ((int)label.size() > width) label = label.substr(0, width);
+            int left = (width - label.size()) / 2;
+            int right = width - label.size() - left;
+            for (int i = 0; i < left; ++i) cout << " ";
+            cout << label;
+            for (int i = 0; i < right; ++i) cout << " ";
+            cout << "|";
+        }
+        cout << "\n ";
+        for (const auto &g : gantt) {
+            int width = (g.end_time - g.start_time) * 2;
+            for (int i = 0; i < width; ++i) cout << "-";
+            cout << " ";
+        }
+        cout << "\n";
+        int ct = gantt[0].start_time;
+        cout << ct;
+        for (const auto &g : gantt) {
+            int width = (g.end_time - g.start_time) * 2;
+            for (int i = 0; i < width; ++i) cout << " ";
+            cout << g.end_time;
+        }
+        cout << "\n";
+    }
+
+    cout << "\n===== TABEL HASIL =====\n";
+    cout << left
+         << setw(8) << "Nama"
+         << setw(6) << "AT"
+         << setw(6) << "BT"
+         << setw(6) << "Q"
+         << setw(6) << "CT"
+         << setw(6) << "TAT"
+         << setw(6) << "WT"
+         << setw(6) << "RT"
+         << "\n";
 
     for (int i = 0; i < n; i++) {
-        p[i].tat = p[i].ct - p[i].at;
-        p[i].wt = p[i].tat - p[i].bt;
-
-        totalTAT += p[i].tat;
-        totalWT  += p[i].wt;
-
-        if (p[i].queue == 1) {
-            totalTAT1 += p[i].tat;
-            totalWT1  += p[i].wt;
-            c1++;
-        } else {
-            totalTAT2 += p[i].tat;
-            totalWT2  += p[i].wt;
-            c2++;
-        }
+        cout << left
+             << setw(8) << p[i].name
+             << setw(6) << p[i].arrival_time
+             << setw(6) << p[i].burst_time
+             << setw(6) << p[i].queue_level
+             << setw(6) << p[i].completion_time
+             << setw(6) << p[i].turnaround_time
+             << setw(6) << p[i].waiting_time
+             << setw(6) << p[i].response_time
+             << "\n";
     }
 
-    // Output
-    cout << "\n========== GANTT CHART ==========\n";
-    for (int i = 0; i < gantt.size(); i++) {
-        cout << "[" << gantt[i].start << "-" << gantt[i].end << "] "
-             << p[gantt[i].pid].name << "(Q" << gantt[i].q << ")  ";
-    }
+    cout << fixed << setprecision(2);
+    cout << "\nAvg TAT = " << total_tat / n;
+    cout << "\nAvg WT  = " << total_wt / n << "\n";
+}
 
-    cout << "\n\n========== HASIL PROSES ==========\n";
-    cout << "Nama\tAT\tBT\tQ\tCT\tTAT\tWT\tRT\n";
-    for (int i = 0; i < n; i++) {
-        cout << p[i].name << "\t" 
-             << p[i].at << "\t"
-             << p[i].bt << "\t"
-             << p[i].queue << "\t"
-             << p[i].ct << "\t"
-             << p[i].tat << "\t"
-             << p[i].wt << "\t"
-             << p[i].rt << "\n";
-    }
 
-    cout << "\nRata-rata TAT: " << totalTAT / n;
-    cout << "\nRata-rata WT : " << totalWT  / n;
-
-    if (c1 > 0) {
-        cout << "\n\nQueue 1 (RR) → Avg TAT: " << totalTAT1 / c1
-             << " | Avg WT: " << totalWT1 / c1;
-    }
-    if (c2 > 0) {
-        cout << "\nQueue 2 (FCFS) → Avg TAT: " << totalTAT2 / c2
-             << " | Avg WT: " << totalWT2 / c2;
-    }
-
-    cout << "\n\nSelesai!\n";
+int main() {
+    solve_mlq();
     return 0;
 }
