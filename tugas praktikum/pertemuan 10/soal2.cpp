@@ -22,36 +22,6 @@ struct Segment {
     int pid;          // index proses, -1 = IDLE
 };
 
-void inputProcesses(vector<Process>& p, int n) {
-    for (int i = 0; i < n; ++i) {
-        cout << "\nProses ke-" << i + 1 << ":\n";
-        cout << "Nama proses                 : ";
-        cin >> p[i].name;
-        cout << "Arrival Time (AT)          : ";
-        cin >> p[i].at;
-        cout << "Burst Time (BT)            : ";
-        cin >> p[i].bt;
-        cout << "Priority (lebih kecil=lebih tinggi): ";
-        cin >> p[i].priority;
-
-        p[i].currentPrio = p[i].priority;
-        p[i].remaining   = p[i].bt;
-        p[i].ct = p[i].tat = p[i].wt = 0;
-        p[i].rt = -1;       // belum pernah jalan
-        p[i].waiting = 0; // belum menunggu
-    }
-}
-
-void cariArrivalPalingKecil(const vector<Process>& p, int n, int& firstArrival) {
-    firstArrival = 1000000000;
-    for (int i = 0; i < n; ++i) {
-        if (p[i].at < firstArrival) {
-            firstArrival = p[i].at;
-        }
-    }
-}
-
-void 
 
 int main() {
     int n;
