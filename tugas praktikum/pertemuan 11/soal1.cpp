@@ -2,7 +2,8 @@
 
 /*
 Soal 1 : Faktorial Iteratif
-Buatlah program C++ menggunakan looping (for/while) untuk menghitung faktorial dari sebuah bilangan n yang dimasukkan oleh user.
+Buatlah program C++ menggunakan looping (for/while) untuk menghitung faktorial 
+dari sebuah bilangan n yang dimasukkan oleh user.
 Contoh Input:
 Masukkan n: 5
 Contoh Output:
@@ -11,6 +12,8 @@ Contoh Output:
 */
 
 int main() {
+
+    system("cls");
     int n;
     std::cout << "Masukkan n: ";
     std::cin >> n;
